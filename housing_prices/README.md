@@ -1,51 +1,41 @@
 # House Prices Solution
 
-This project is my solution for the Kaggle competition [House Prices: Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques).  
-The goal is to predict the final price of residential homes based on 80+ features describing property characteristics.
+Solution for the Kaggle competition **[Housing Prices Competition for Kaggle Learn Users](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview/kaggle-learn)**.  
+**Task:** predict house prices based on tabular data with numerical and categorical features.   
 
-## Steps
-1. **Data loading and overview**  
-   - Train and test datasets with 80+ features (categorical and numerical).  
-   - Target variable: `SalePrice`.  
+---
 
-2. **Exploratory Data Analysis (EDA)**  
-   - Calculated **Pearson correlation** between features and `SalePrice`.  
-   - Selected features with correlation coefficient > 0.5.  
-   - Strongest predictors:  
-     - `OverallQual` (0.79)  
-     - `GrLivArea` (0.71)  
-     - `GarageCars` (0.64)  
-     - `GarageArea` (0.62)  
-     - `TotalBsmtSF` (0.61)  
-     - `1stFlrSF` (0.61)  
-     - `FullBath` (0.56)  
-     - `TotRmsAbvGrd` (0.53)  
-     - `YearBuilt` (0.52)  
-     - `YearRemodAdd` (0.51)  
+## Approaches
 
-3. **Feature engineering**  
-   - Converted categorical variables into numerical form with **one-hot encoding** (`pd.get_dummies`).  
-   - Filled missing values in test data with zeros (`fillna(0)`).  
+### 1. Random Forest (scikit-learn)
 
-4. **Modeling**  
-   - Used `RandomForestRegressor` as the main model.  
-   - Performed **hyperparameter tuning** with `GridSearchCV` (5-fold cross-validation).  
-   - Best parameters found:  
-     - `n_estimators = 400`  
-     - `max_depth = 16`  
-     - `min_samples_leaf = 2`  
+- **EDA**: computed correlations with the target variable and selected features with correlation coefficient > 0.5.  
+- **Feature engineering**: one-hot encoding for categorical features, handling missing values.  
+- **Model**: RandomForestRegressor + GridSearchCV (5-fold CV).  
+- **Best hyperparameters**:  
+  - `n_estimators = 400`  
+  - `max_depth = 16`  
+  - `min_samples_leaf = 2`  
+- **Result**: RMSE (CV) ≈ **0.161**, Public LB ≈ **18329.46**.  
 
-5. **Evaluation**  
-   - Metric: RMSE on log-transformed target (`np.log1p`) to match Kaggle evaluation.  
-   - Best cross-validation RMSE ≈ **0.161**.  
+---
 
-6. **Prediction and submission**  
-   - Trained final model on the full training data.  
-   - Generated predictions for the test set.  
-   - Created `submission.csv` for Kaggle upload.  
+### 2. CatBoost (gradient boosting by Yandex)
 
-## Result
-- Final Random Forest model achieved **18329.45802** score on the Kaggle public leaderboard.  
+- **Key features**:  
+  - Native support for categorical variables (no OHE needed).  
+  - Handles missing values without manual imputation.  
+  - Ordered boosting to prevent target leakage.  
+- **Preprocessing**: categorical features converted to strings, numerical features left with NaN values.  
+- **Model**: CatBoostRegressor (`depth=8`, `learning_rate=0.05`, `iterations=5000` with `early_stopping_rounds=200`).  
+- **Evaluation**:  
+  - Best CV-RMSLE ≈ **0.122** at ~1320 iterations.  
+  - Kaggle metric: better than RandomForest (14336.9).  
+- **Feature importance**: main features overlap with RF (`OverallQual`, `GrLivArea`, `GarageCars`, `TotalBsmtSF`, …).  
+
+---
 
 ## Tech Stack
-Python, pandas, scikit-learn, Jupyter Notebook
+
+- **Python**: pandas, numpy, matplotlib, seaborn  
+- **ML**: scikit-learn, CatBoost
